@@ -1,0 +1,39 @@
+trigger:
+  branches:
+    include:
+      - master
+
+schedules:
+  - cron: "30 0 20 * *"
+    displayName: Schedule Run at 12:30 AM on the 20th of every Month
+    branches:
+      include:
+        - master
+    always: true
+
+variables:
+  - group: keys
+
+jobs:
+  - job: GetJamfPackages
+    displayName: "Download and Upload Jamf Packages"
+    pool:
+      name: 'Default'
+
+    steps:
+      - checkout: self
+
+      - script: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt --break-system-packages
+        displayName: 'Install Dependencies'
+
+      - script: |
+          python3 app.py \
+            --account_url "$(ACCOUNT_URL)" \
+            --container_name "$(CONTAINER_NAME)" \
+            --account_key "$(ACCOUNT_KEY)" \
+            --jamf_url "$(JAMF_URL)" \
+            --username "$(USERNAME)" \
+            --password "$(PASSWORD)"
+        displayName: 'Run app.py'
